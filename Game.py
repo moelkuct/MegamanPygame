@@ -55,7 +55,7 @@ def load_level(level):
 
    game_has_started = False
    level_objs = game_setup.level_dict[level]
-   game_setup.load_megaman_objects(level_objs[0], level_objs[1], level_objs[2], level_objs[3], spawn_megaman=True, m_x=250, m_y=410)
+   game_setup.load_megaman_objects(level_objs[0], level_objs[1], level_objs[2], level_objs[3], spawn_megaman=True, m_x=-100, m_y=410)
    for sprite_surf in sprite.Sprite_surface.all_sprite_surfaces: 
       if sprite_surf.ID == 'megaman':
          megaman = sprite_surf
@@ -64,11 +64,15 @@ def load_level(level):
    game_timers.replenish_timer('jump_to_start')
    game_timers.replenish_timer('reset')
    game_timers.replenish_timer('game_over')
-   universal_var.checkpoint = [0, 0]
    camera.World_camera.world_location = [0, 0]
    Debug.debug_init()
    boss_room.Boss_room.battle_has_end = False
    sprite.Sprite_surface.all_sprite_surfaces.sort(key=lambda x: x.display_layer)
+   # Snap camera to Megaman's spawn so there's no jump when he first activates
+   camera.World_camera.static = False
+   camera.World_camera.follow(megaman)
+   megaman.spawn_point[0] = camera.World_camera.original_position[0]
+   universal_var.checkpoint = list(camera.World_camera.world_location)
 
 
 def jump_to_start(sprite_surf):
@@ -201,6 +205,9 @@ def check_megaman_alive():
    global screen
    global game_has_started
    global game_timers
+
+   megaman.health_points = max(1, megaman.health_points)  # DEV: god mode
+   megaman.health_bar.points = megaman.health_points
 
    if megaman.lives < 0:
       game_over()

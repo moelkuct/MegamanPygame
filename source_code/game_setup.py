@@ -22,6 +22,8 @@ game_timers = Timer()
 game_timers.add_ID('time_till_game_start', 550) #550
 game_timers.add_ID('init_star_background', 90)
 Title_screen.init()
+Title_screen.is_running = False           # DEV: skip title screen
+game_timers.replenish_timer('time_till_game_start', 0)  # DEV: skip intro sequence
 
 def clear_all_lists():
    sprite.Sprite_surface.all_sprite_surfaces.clear()

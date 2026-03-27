@@ -55,9 +55,9 @@ class Concrete_man(Megaman_object):
          Concrete_shot()
 
       self.trigger_coll_box = Boss_room(self, trigger_coll_box.x, trigger_coll_box.y, trigger_coll_box.width, trigger_coll_box.height)
-      self.health_points = 440 #440
+      self.health_points = 308 #440
       self.original_health_points = self.health_points
-      self.damage_points = 15
+      self.damage_points = 8
       self.original_damage_points = self.damage_points
       self.battle_has_init = False
       self.grounded = False
@@ -69,7 +69,7 @@ class Concrete_man(Megaman_object):
 
       self.current_action = 'introduction'
       self.all_timers = Timer()
-      self.all_timers.add_ID('idle_time', 25)
+      self.all_timers.add_ID('idle_time', 50)
       self.all_timers.add_ID('damage_taken', 0)
       self.all_timers.add_ID('shake_camera', 20)
 
@@ -226,7 +226,7 @@ class Concrete_man(Megaman_object):
 
 
    def idle_action(self):
-      self.damage_points = 17
+      self.damage_points = 9
       if self.all_timers.is_finished('idle_time') != True:
          self.all_timers.countdown('idle_time')
       else:
@@ -240,7 +240,7 @@ class Concrete_man(Megaman_object):
 
 
    def charge_action(self):
-      self.damage_points = 19
+      self.damage_points = 10
       if self.direction == True:
          vel = 8
          angle = 96
@@ -289,7 +289,7 @@ class Concrete_man(Megaman_object):
          self.current_action = 'idle'
 
       else:
-         self.damage_points = 16
+         self.damage_points = 8
          if self.all_timers.is_full('shoot_time'):
             play_sound('concrete_man_shoot', universal_var.megaman_sounds, channel=2, volume=universal_var.sfx_volume - 0.1)
             megaman = Megaman.all_sprite_surfaces[0]
@@ -339,7 +339,7 @@ class Concrete_man(Megaman_object):
 
    def stomp_action(self):
 
-      self.damage_points = 18
+      self.damage_points = 9
       megaman = Megaman.all_sprite_surfaces[0]
       if self.all_timers.is_finished('time_till_jump') != True:
          self.all_timers.countdown('time_till_jump')
@@ -405,6 +405,7 @@ class Concrete_man(Megaman_object):
          self.display_animation(universal_var.main_sprite, surf, 'introduction', flip=self.direction)
          if universal_var.game_pause != True:
             self.update_sprite(universal_var.main_sprite, auto_reset=False, loop_amount=2)
+
 
 
    def display_charge_animation(self, surf):
@@ -485,8 +486,15 @@ class Concrete_man(Megaman_object):
 
 
 #----------------------------------------------------------------------------STAGE PROPS----------------------------------------------------------------------------------
+# Note: replace 'map_1' below with a custom key once you add an arena background
+# image to resources/enemies/concrete_man/ and register it here.
 props = [
-              ['bg', (0,0), (2400, 600), (['map_1'], 30), 1, (0,0,0,0)], ['bg', (2399,0), (1800, 600), (['map_2'], 30), 1, (0,0,0,0)], 
+              ['bg', (-942, 0), (942, 600), (['map_0'], 30), 1, (0,0,0,0)],
+              ['bg', (-754, 13), (43, 27), (['waterdrop_1', 'waterdrop_2', 'waterdrop_3'], 17), 0, (0,0,0,0)], ['bg', (-711, 13), (43, 27), (['waterdrop_1', 'waterdrop_2', 'waterdrop_3'], 17), 0, (0,0,0,0)],
+              ['bg', (-754, 40), (43, 410), (['waterfall_1', 'waterfall_2'], 10), 0, (0,0,0,0)], ['bg', (-711, 40), (43, 410), (['waterfall_2', 'waterfall_1'], 10), 0, (0,0,0,0)],
+              ['bg', (-188, 13), (43, 27), (['waterdrop_1', 'waterdrop_2', 'waterdrop_3'], 17), 0, (0,0,0,0)], ['bg', (-145, 13), (43, 27), (['waterdrop_1', 'waterdrop_2', 'waterdrop_3'], 17), 0, (0,0,0,0)],
+              ['bg', (-188, 40), (43, 410), (['waterfall_1', 'waterfall_2'], 10), 0, (0,0,0,0)], ['bg', (-145, 40), (43, 410), (['waterfall_2', 'waterfall_1'], 10), 0, (0,0,0,0)],
+              ['bg', (0,0), (2400, 600), (['map_1'], 30), 1, (0,0,0,0)], ['bg', (2399,0), (1800, 600), (['map_2'], 30), 1, (0,0,0,0)],
               ['bg', (3600,600), (600, 600), (['map_3'], 30), 1, (0,0,0,0)], ['bg', (2400,1200), (1800, 600), (['map_4'], 30), 1, (0,0,0,0)], 
               ['bg', (2400,1800), (600, 1800), (['map_5'], 30), 1, (0,0,0,0)], ['bg', (2400,3600), (3000, 600), (['map_6'], 30), 1, (0,0,0,0)],
 
@@ -534,7 +542,9 @@ all_items = [
             ]
 
 coll_boxes = [
-              [(-20,0), (20,600), 'platform'], [(0,472), (1806,40), 'platform'], [(690,429), (345, 40), 'platform'], [(1208,429), (345, 40), 'platform'], 
+              [(-962, 0), (20, 600), 'platform'],      # arena left wall
+              [(-942, 472), (942, 40), 'platform'],    # arena floor
+              [(0,472), (1806,40), 'platform'], [(1208,429), (345, 40), 'platform'],
               [(1728,385), (345, 40), 'platform'], [(2074,342), (342,642), 'platform'], [(2419,472), (254,206), 'platform'], [(2764,472), (257,317), 'platform'],
               [(3110,429), (170,402), 'platform'], [(3414,472), (559,173), 'platform'], [(3719,387), (230,103), 'platform'], [(3803,302), (167,203), 'platform'],
               [(3759,129), (213,171), 'platform'], [(3455,249), (173,46), 'platform'], [(3455,0), (85,249), 'platform'], [(4112,-182), (87,2000), 'platform'],
@@ -547,7 +557,8 @@ coll_boxes = [
               [(4848,4157), (550,500), 'platform'], [(4224,3842), (16,213), 'platform'], [(4821,3847), (24,193), 'platform'], [(5359,3760), (500,435), 'platform'],
               [(3269,3776), (79,43), 'platform'], [(3556,3776), (38,43), 'platform'],
 
-              [(0,-300), (267,1500), 'c_box'], [(3918,-178), (283,1278), 'c_box'], [(3600, 600), (600, 1200), 'c_box'], 
+              [(-120, 0), (20, 600), 'platform'], [(950, 0), (20, 600), 'platform'],
+              [(3918,-178), (283,1278), 'c_box'], [(3600, 600), (600, 1200), 'c_box'], 
               [(3000, 1200), (600, 600), 'c_box'], [(2400,1200), (600, 3000), 'c_box'],
               [(3000,3527), (265,1278), 'c_box'], [(3923,3527), (1500,1278), 'c_box'],
 
@@ -559,11 +570,12 @@ coll_boxes = [
              ]
 
 enemies = [
+           [(350, 100), 'concrete_man', (200, 0), (600, 600), False],
            [(3735,370), 'met', False, 130, 50], [(4196,823), 'lasor', 45, -6], [(3592-1400,1072), 'lasor', 148, 6], 
            [(2392-1400,1950), 'lasor', 73, 6], [(3074,2187), 'lasor', 53, -6], [(2393-1400,2539), 'lasor', 3, 6], 
            [(3074,2661), 'lasor', 50, -6], [(2393-1400,2783), 'lasor', 78, 6], [(2717,620), 'det', 90, 57, 140, 600], 
            [(3059,620), 'det', 80, 70, 150, 600], [(3347,620), 'det', 80, 77, 170, 600],
-           [(3289,3755), 'met', False, 160, 50], [220, 'hoohoo', 70, (603,198), (750,279)],
+           [(3289,3755), 'met', False, 160, 50],
            [230, 'hoohoo', 40, (1360,128), (1245,479)], [90, 'hoohoo', 100, (1360,128), (1045,479)], [80, 'hoohoo', 70, (2626,171), (567,479)], 
            [280, 'hoohoo', 60, (2484,3679), (500,600)], [90, 'hoohoo', 70, (3190,3582), (576,479)],
            [(3130,1549), 'paozo', True], [(3681, 4064), 'big_stomper', 22], [(3321, 4064), 'big_stomper', 22],

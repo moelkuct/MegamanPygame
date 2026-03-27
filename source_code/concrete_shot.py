@@ -29,7 +29,7 @@ class Concrete_shot(Projectile):
       ground_collbox = sprite.Collision_box('ground_collbox', x, y, width-30, 15, (150, 180, 100), x_offset=15, y_offset=height-17)
 
       super().__init__('Enemy_projectile_1', x, y, [bullet_sprite], [main_coll_box, ground_collbox], width=width, height=height, display_layer=4)
-      self.damage_points = 13
+      self.damage_points = 7
       self.grounded = False
       self.solidified = False
       self.is_shattered = False
