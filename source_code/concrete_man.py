@@ -16,11 +16,14 @@ from boss_room import Boss_room
 class Concrete_man(Megaman_object):
    sprite_imgs = load_images('resources/enemies/concrete_man')
 
-   def __init__(self, x, y, trigger_coll_box, spawn=False):
+   def __init__(self, x, y, trigger_coll_box, spawn=False, title_sprites=False):
       width, height = 130, 105
 
       idle_imgs = [Concrete_man.sprite_imgs['idle']]
-      intro_imgs = [Concrete_man.sprite_imgs['intro_1'], Concrete_man.sprite_imgs['intro_2'], Concrete_man.sprite_imgs['intro_3']]
+      if title_sprites:
+         intro_imgs = [Concrete_man.sprite_imgs['intro_1_title'], Concrete_man.sprite_imgs['intro_2_title'], Concrete_man.sprite_imgs['intro_3_title']]
+      else:
+         intro_imgs = [Concrete_man.sprite_imgs['intro_1'], Concrete_man.sprite_imgs['intro_2'], Concrete_man.sprite_imgs['intro_3']]
       falling_imgs = [Concrete_man.sprite_imgs['falling']]
       charge_imgs = [Concrete_man.sprite_imgs['charge_1'], Concrete_man.sprite_imgs['charge_2']]
       shoot_imgs = [Concrete_man.sprite_imgs['shoot']]
@@ -69,7 +72,7 @@ class Concrete_man(Megaman_object):
 
       self.current_action = 'introduction'
       self.all_timers = Timer()
-      self.all_timers.add_ID('idle_time', 50)
+      self.all_timers.add_ID('idle_time', 85)
       self.all_timers.add_ID('damage_taken', 0)
       self.all_timers.add_ID('shake_camera', 20)
 

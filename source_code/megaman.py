@@ -233,7 +233,7 @@ class Megaman(Character):
       if isinstance(hazard, Concrete_shot) and hazard.is_active:
          hazard.is_active = False
          self.concrete_stun = True
-         self.freeze(130)
+         self.freeze(35)
 
 
    def check_all_collisions(self):

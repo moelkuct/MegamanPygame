@@ -46,13 +46,12 @@ class Title_screen(object):
 
          if cls.confirmation != True:
             cls.begin_game.display(cls.screen, 'flash')
-            Bit_text.display_text(cls.screen, (20, 530), '©capcom co.,  ltd', 3, 3)
-            Bit_text.display_text(cls.screen, (20, 560), 'a short pygame project', 3, 3)
+            Bit_text.display_text(cls.screen, (20, 530), '©Liine.', 3, 3)
+            Bit_text.display_text(cls.screen, (20, 560), 'Liinear Elite Action', 3, 3)
             if Title_screen.music_lock != True:
                universal_var.songs.play_list(song_number=4, loop=True)
                Title_screen.music_lock = True
 
-      
       if cls.confirmation != True:
          cls.title_logo.follow(x=50, y=-20, x_vel=20, y_vel=20)
          cls.megaman_face.follow(x=340, y=230, x_vel=20, y_vel=20)

@@ -22,8 +22,6 @@ game_timers = Timer()
 game_timers.add_ID('time_till_game_start', 550) #550
 game_timers.add_ID('init_star_background', 90)
 Title_screen.init()
-Title_screen.is_running = False           # DEV: skip title screen
-game_timers.replenish_timer('time_till_game_start', 0)  # DEV: skip intro sequence
 
 def clear_all_lists():
    sprite.Sprite_surface.all_sprite_surfaces.clear()
@@ -143,12 +141,13 @@ def load_megaman_objects(props=None, coll_boxes=None, enemies=None, all_items=No
          if enemy_name == 'concrete_man':
             x, y, spawn = lst[0][0], lst[0][1], lst[4]
             collbox_x, collbox_y, collbox_width, collbox_height = lst[2][0], lst[2][1], lst[3][0], lst[3][1]
+            title_sprites = lst[5] if len(lst) > 5 else False
 
             c = [sprite.Collision_box(universal_var.hitbox, collbox_x, collbox_y, collbox_width, collbox_height, (130, 190, 140))]
             trigg_collbox = megaman_object.Megaman_object('platform', collbox_x, collbox_y, sprites=None, coll_boxes=c,
                                                    width=collbox_width, height=collbox_height, display_layer=5)
 
-            concrete_man.Concrete_man(x, y, trigg_collbox, spawn)
+            concrete_man.Concrete_man(x, y, trigg_collbox, spawn, title_sprites)
 
    items.Item.drop_list_init()
 
@@ -157,7 +156,8 @@ def boss_intro_sequence(boss_name):
    global game_timers
    if game_timers.is_full('time_till_game_start'):
       clear_all_lists()
-      stage_name = ' '.join(boss_name.split('_'))
+      stage_display_names = {'concrete_man': 'seek the celery!'}
+      stage_name = stage_display_names.get(boss_name, ' '.join(boss_name.split('_')))
       intro_sequence.Stage_rectangle(300, stage_name)
       universal_var.songs.play_list(song_number=3)
 
@@ -165,5 +165,5 @@ def boss_intro_sequence(boss_name):
       game_timers.countdown('init_star_background')
    elif intro_sequence.Star.init != True:
       intro_sequence.Star.init_star_background()
-      load_megaman_objects(enemies=[[(240, -400), boss_name, (0,0), (0,0), True]])
+      load_megaman_objects(enemies=[[(240, -400), boss_name, (0,0), (0,0), True, True]])
    game_timers.countdown('time_till_game_start')
