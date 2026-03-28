@@ -10,11 +10,30 @@ from p_shooter import P_shooter
 from concrete_shot import Concrete_shot
 from random import randint
 import projectile
+import math
+import pygame
 from camera import World_camera
 from boss_room import Boss_room
+from bit_text import Bit_text
 
 class Concrete_man(Megaman_object):
    sprite_imgs = load_images('resources/enemies/concrete_man')
+   _cutscene_face_img = None
+
+   @classmethod
+   def _load_cutscene_face(cls):
+      if cls._cutscene_face_img is None:
+         try:
+            raw = pygame.image.load('resources/enemies/concrete_man/cutscene_on_defeat.png')
+            orig_w, orig_h = raw.get_size()
+            target_h = 160
+            target_w = max(1, int(orig_w * target_h / max(1, orig_h)))
+            scaled = pygame.transform.scale(raw, (target_w, target_h))
+            result = scaled.convert()
+            result.set_alpha(170)
+            cls._cutscene_face_img = result
+         except Exception:
+            cls._cutscene_face_img = False
 
    def __init__(self, x, y, trigger_coll_box, spawn=False, title_sprites=False):
       width, height = 130, 105
@@ -93,6 +112,10 @@ class Concrete_man(Megaman_object):
       self.falling = False
       self.jump_destination = [0, 190]
 
+      self._death_cutscene_active = False
+      self._death_cutscene_done = False
+      self._death_cutscene_elapsed = 0
+
       Concrete_man.add_to_class_lst(self, Megaman_object.hazards, self.ID)
       if spawn:
          self.spawn()
@@ -113,7 +136,74 @@ class Concrete_man(Megaman_object):
          if ID != 'damage_taken':
             self.all_timers.replenish_timer(ID)
 
+   def _start_death_cutscene(self):
+      Concrete_man._load_cutscene_face()
+      self._death_cutscene_active = True
+      self._death_cutscene_elapsed = 0
+      self.current_action = 'idle'
+      self.collided_with_wall = False
+      self.launched = False
+      self.falling = False
+      self.damage_points = 0
+
+   def _draw_death_cutscene(self, surf):
+      elapsed = self._death_cutscene_elapsed
+      DELAY_FRAMES = 180  # 3-second neutral pause before the quote appears
+
+      if elapsed < DELAY_FRAMES:
+         return  # boss just stands idle, nothing extra
+
+      # Semi-dark overlay
+      overlay = pygame.Surface((600, 600))
+      overlay.fill((0, 0, 0))
+      overlay.set_alpha(90)
+      surf.blit(overlay, (0, 0))
+
+      # Faded boss face on the right side with slow bob
+      face = Concrete_man._cutscene_face_img
+      if face:
+         bob_y = int(math.sin(elapsed * 0.05) * 5)
+         surf.blit(face, (395, 100 + bob_y))
+
+      # Speech bubble (left/center area)
+      LINES = ["v-eet, viii-ght.", "i've heard it", "both ways"]
+      FRAMES_PER_CHAR = 5
+      TOTAL_CHARS = sum(len(l) for l in LINES)
+      chars_shown = min((elapsed - DELAY_FRAMES) // FRAMES_PER_CHAR, TOTAL_CHARS)
+
+      bx, by, bw, bh = 15, 295, 365, 108
+      # Black fill
+      pygame.draw.rect(surf, (0, 0, 0), (bx, by, bw, bh))
+      # White outer border (3px — classic NES style)
+      pygame.draw.rect(surf, (255, 255, 255), (bx, by, bw, bh), 3)
+      # Black inner border (double-border 8-bit effect)
+      pygame.draw.rect(surf, (0, 0, 0), (bx + 3, by + 3, bw - 6, bh - 6), 1)
+
+      # Tail pointing right toward the face
+      tail_x = bx + bw
+      tail_y = by + bh // 2
+      tail_pts = [(tail_x, tail_y - 9), (tail_x + 18, tail_y), (tail_x, tail_y + 9)]
+      pygame.draw.polygon(surf, (255, 255, 255), tail_pts)
+      inner_tail = [(tail_x, tail_y - 6), (tail_x + 12, tail_y), (tail_x, tail_y + 6)]
+      pygame.draw.polygon(surf, (0, 0, 0), inner_tail)
+
+      # Typewriter text reveal
+      shown_so_far = 0
+      for i, line in enumerate(LINES):
+         if chars_shown > shown_so_far:
+            visible = line[:chars_shown - shown_so_far]
+            Bit_text.display_text(surf, (bx + 14, by + 14 + i * 30), visible, 2, 2)
+         shown_so_far += len(line)
+
+      if elapsed >= DELAY_FRAMES + TOTAL_CHARS * FRAMES_PER_CHAR + 80:
+         self._death_cutscene_done = True
+
    def display(self, surf):
+      if self._death_cutscene_active:
+         self.display_animation(universal_var.main_sprite, surf, 'idle', flip=self.direction)
+         self._draw_death_cutscene(surf)
+         return
+
       if self.all_timers.is_finished('damage_taken', include_loop=True) != True:
          self.display_animation('effects', surf, 'spark_effect', x_offset=16, y_offset=20)
          self.update_sprite('effects')
@@ -140,6 +230,9 @@ class Concrete_man(Megaman_object):
 
 
    def carry_out_action(self):
+      if self._death_cutscene_active:
+         return
+
       if self.current_action == 'introduction':
          self.introduction_action()
 
@@ -158,21 +251,29 @@ class Concrete_man(Megaman_object):
 
 
    def update(self):
+      if self._death_cutscene_active and not self._death_cutscene_done:
+         if universal_var.game_pause != True:
+            self._death_cutscene_elapsed += 1
+
       self.carry_out_action()
-         
+
       self.check_collisions()
 
-      if self.grounded == False and self.is_active and self.launched != True:
-         self.apply_gravity()
+      if not self._death_cutscene_active:
+         if self.grounded == False and self.is_active and self.launched != True:
+            self.apply_gravity()
 
       if universal_var.game_reset:
          self.is_active = False
          self.reset_atrributes()
 
       if self.trigger_coll_box.battle_has_init:
-         self.health_bar.points = self.health_points
+         self.health_bar.points = max(0, self.health_points)
          if self.is_alive() != True and self.is_active:
-            self.explode()
+            if not self._death_cutscene_active:
+               self._start_death_cutscene()
+            elif self._death_cutscene_done:
+               self.explode()
 
       #Sprite_surface.update(self)
 
@@ -477,6 +578,9 @@ class Concrete_man(Megaman_object):
       self.collided_with_wall = False
       self.launched = False
       self.falling = False
+      self._death_cutscene_active = False
+      self._death_cutscene_done = False
+      self._death_cutscene_elapsed = 0
 
 
    def shake_camera(self):

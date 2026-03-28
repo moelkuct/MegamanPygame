@@ -40,6 +40,7 @@ class Boss_room(Megaman_object):
       self.all_timers.add_ID('time_till_end_song', 160)
       self.boss = boss
       self._reward_elapsed = 0
+      self._celery_delay = 0
 
 
    def check_player_collision(self):
@@ -144,6 +145,11 @@ class Boss_room(Megaman_object):
       if not self.battle_has_end:
          return
 
+      if self._celery_delay < 240:
+         if universal_var.game_pause != True:
+            self._celery_delay += 1
+         return
+
       Boss_room._load_celery()
 
       # Dark semi-transparent overlay so the reward pops
@@ -189,15 +195,20 @@ class Boss_room(Megaman_object):
    def update(self):
       if len(Megaman.all_sprite_surfaces) != 0:
          m = Megaman.all_sprite_surfaces[0]
+
+         # Unconditionally lock movement during death cutscene and celery reward
+         if self.boss._death_cutscene_active or self.battle_has_end:
+            m.disable_keys()
+
          if self.check_player_collision():
             if self.battle_has_init != True and camera.camera_transitioning() != True:
                m.disable_keys()
                self.spawn_boss()
             elif self.battle_has_init and self.battle_has_end != True:
-               m.enable_keys()
+               if not self.boss._death_cutscene_active:
+                  m.enable_keys()
 
             if self.battle_has_end:
-               m.disable_keys()
                self.end_level()
 
             if (self.battle_has_init and self.battle_has_end != True) and self.boss.is_alive() != True and self.boss.is_active != True:
@@ -208,6 +219,7 @@ class Boss_room(Megaman_object):
             self.battle_has_init = False
             self.battle_has_end = False
             self._reward_elapsed = 0
+            self._celery_delay = 0
             self.boss.health_bar.points = 0
             m.enable_keys()
             for ID in self.all_timers:
