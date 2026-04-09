@@ -19,10 +19,9 @@ from timer import Timer
 
 level_dict = {'concrete_man': [concrete_man.props, concrete_man.coll_boxes, concrete_man.enemies, concrete_man.all_items]}
 game_timers = Timer()
-game_timers.add_ID('time_till_game_start', 0) #550
+game_timers.add_ID('time_till_game_start', 550)
 game_timers.add_ID('init_star_background', 90)
 Title_screen.init()
-Title_screen.is_running = False #skip title for testing
 
 def clear_all_lists():
    sprite.Sprite_surface.all_sprite_surfaces.clear()

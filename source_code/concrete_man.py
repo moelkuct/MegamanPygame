@@ -77,7 +77,7 @@ class Concrete_man(Megaman_object):
          Concrete_shot()
 
       self.trigger_coll_box = Boss_room(self, trigger_coll_box.x, trigger_coll_box.y, trigger_coll_box.width, trigger_coll_box.height)
-      self.health_points = 308 #440
+      self.health_points = 360 #440
       self.original_health_points = self.health_points
       self.damage_points = 8
       self.original_damage_points = self.damage_points
@@ -101,6 +101,7 @@ class Concrete_man(Megaman_object):
       self.all_timers.add_ID('time_till_charge', 15)
       self.all_timers.add_ID('time_till_wall_detect', 2)
       self.collided_with_wall = False
+      self._charge_dist = 0
 
       #shoot action
       self.all_timers.add_ID('shoot_time', 20)
@@ -111,6 +112,7 @@ class Concrete_man(Megaman_object):
       self.all_timers.add_ID('landing_time', 30)
       self.falling = False
       self.jump_destination = [0, 190]
+      self.floor_y = None
 
       self._death_cutscene_active = False
       self._death_cutscene_done = False
@@ -262,6 +264,10 @@ class Concrete_man(Megaman_object):
       if not self._death_cutscene_active:
          if self.grounded == False and self.is_active and self.launched != True:
             self.apply_gravity()
+         if self.floor_y is not None and self.y > self.floor_y:
+            self.y = self.floor_y
+            self.grounded = True
+            self.launched = False
 
       if universal_var.game_reset:
          self.is_active = False
@@ -291,6 +297,8 @@ class Concrete_man(Megaman_object):
                else:
                   self.push_vert(platform, 'ground_collbox', universal_var.hitbox)
                   self.grounded = True
+                  if self.floor_y is None or self.y > self.floor_y:
+                     self.floor_y = self.y
 
          #touch wall
          wall_collision = self.check_collision_lst(Megaman_object.platforms, universal_var.hitbox, universal_var.hitbox, quota=1)
@@ -355,10 +363,14 @@ class Concrete_man(Megaman_object):
       if self.all_timers.is_finished('time_till_charge') != True: #wait for a bit before charging forward
          self.all_timers.countdown('time_till_charge')
          self.all_timers.replenish_timer('time_till_wall_detect')
+         self._charge_dist = 0
       else:
          if self.collided_with_wall != True:
             if universal_var.game_pause != True:
                self.x += vel
+               self._charge_dist += abs(vel)
+               if self._charge_dist >= 260:
+                  self.collided_with_wall = True
 
          elif self.launched != True and self.collided_with_wall: #hit the wall
             play_sound('concrete_man_impact', universal_var.megaman_sounds, channel=2, volume=universal_var.sfx_volume - 0.1)
@@ -578,6 +590,8 @@ class Concrete_man(Megaman_object):
       self.collided_with_wall = False
       self.launched = False
       self.falling = False
+      self._charge_dist = 0
+      self.floor_y = None
       self._death_cutscene_active = False
       self._death_cutscene_done = False
       self._death_cutscene_elapsed = 0
